@@ -1,13 +1,8 @@
-import * as vectors from './vectors.js'
+export * as vectors from './vectors.js'
 
 let session;
-export async function load(model) {
-    session = await ort.InferenceSession.create(model);
-}
 
-export {
-    vectors
-}
+export const load = async (model) => session = await ort.InferenceSession.create(model);
 
 export async function run(tensor) {
     const inputTensor = new ort.Tensor('float32', tensor, [1, tensor.length]);

@@ -1,15 +1,7 @@
 import { randn } from "./utils.js";
 
-const defaultSize = 128
+const defaultSize = Math.pow(2, 7) // 128. Hardcoded in the model for now
 
-export function generate(size = defaultSize) {
-    const latentVector = new Float32Array(size);
-    for (let i = 0; i < size; i++) latentVector[i] = randn();
-    return latentVector;
-}
+export const generate = (size = defaultSize) => Array.from({ length: size }, () => randn());
 
-export function interpolate(v1, v2, factor) {
-    const result = new Float32Array(v1.length);
-    for (let i = 0; i < v1.length; i++) result[i] = v1[i] * (1 - factor) + v2[i] * factor;
-    return result;
-}
+export const interpolate = (v1, v2, factor) => v1.map((v, i) => v * (1 - factor) + v2[i] * factor)
