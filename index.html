@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <style>
+
+        html, body {
+            margin: 0;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        img {
+            height: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <img id="generatedImage" src="" alt="Generated image" hidden>
+    <input type="file" accept=".onnx">
+</body>
+
+
+    
+<script type="module">
+    import * as model from './src/index.js'
+
+    const img = document.querySelector('img')
+    const input = document.querySelector('input')
+
+    input.onchange = async (ev) => {
+        const file = ev.target.files[0]
+        await model.load(await file.arrayBuffer()) //
+        input.setAttribute('hidden', '')
+        animate()
+    }
+
+    function animate () {
+        model.generateImage().then(dataurl => {
+            img.src = dataurl
+            img.removeAttribute('hidden')
+        })
+        requestAnimationFrame(animate)
+    }
+
+</script>
+
+</html>
