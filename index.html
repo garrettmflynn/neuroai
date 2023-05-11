@@ -28,8 +28,6 @@
     <input type="file" accept=".onnx">
 </body>
 
-
-    
 <script type="module">
     import * as model from './src/index.js'
 
@@ -37,13 +35,33 @@
     const img = document.querySelector('img')
     const input = document.querySelector('input')
 
+    const framesPerInterpolation = 60
+
+    let vFrom, vTo = model.vectors.generate()
+
+    const vectors = [model.vectors.generate()]
+
+    let nFrames = 0
 
     // Create an animation function to handle image refreshes
     function animate () {
-        model.generateImage().then(dataurl => {
+        let vector
+
+        // Create new vector to interpolate to
+        const modulus = nFrames % framesPerInterpolation
+        if (modulus === 0) vectors.push(model.vectors.generate())
+        
+        // Interpolate the last two vectors in the array
+        const vInter = model.vectors.interpolate(vectors[vectors.length - 2], vectors[vectors.length - 1], modulus / framesPerInterpolation)
+        
+        // Generate an image based off the interpolated vector
+        model.generateImage(vInter).then(dataurl => {
             img.src = dataurl
             img.removeAttribute('hidden')
         })
+
+        // Increment the frame count and request the next frame
+        nFrames++
         requestAnimationFrame(animate)
     }
 

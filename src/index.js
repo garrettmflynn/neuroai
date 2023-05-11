@@ -1,21 +1,24 @@
-import { generateNormalLatentVector } from './utils.js'
+import * as vectors from './vectors.js'
 
 let session;
 export async function load(model) {
     session = await ort.InferenceSession.create(model);
 }
 
+export {
+    vectors
+}
 
-export async function run() {
-    const inputTensor = new ort.Tensor('float32', generateNormalLatentVector(128), [1, 128]);
+export async function run(tensor) {
+    const inputTensor = new ort.Tensor('float32', tensor, [1, tensor.length]);
     const inputData = { latent: inputTensor };
     const outputData = await session.run(inputData);
     return outputData.img; // Return the output tensor
 }
 
-export async function generateImage() {
+export async function generateImage(tensor = vectors.generate()) {
     try {
-        const outputTensor = await run();
+        const outputTensor = await run(tensor);
         const [batchSize, channels, height, width] = outputTensor.dims;
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d');
