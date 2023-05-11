@@ -33,16 +33,12 @@
 <script type="module">
     import * as model from './src/index.js'
 
+    // Get elements from the page
     const img = document.querySelector('img')
     const input = document.querySelector('input')
 
-    input.onchange = async (ev) => {
-        const file = ev.target.files[0]
-        await model.load(await file.arrayBuffer()) //
-        input.setAttribute('hidden', '')
-        animate()
-    }
 
+    // Create an animation function to handle image refreshes
     function animate () {
         model.generateImage().then(dataurl => {
             img.src = dataurl
@@ -50,6 +46,20 @@
         })
         requestAnimationFrame(animate)
     }
+
+    // A. Run the model whenever the file input changes
+    input.onchange = async (ev) => {
+        const file = ev.target.files[0]
+        await model.load(await file.arrayBuffer()) //
+        input.setAttribute('hidden', '')
+        animate()
+    }
+
+    // // B. Alternatively, you can run the model immediately on load
+    // input.setAttribute('hidden', '')
+    // const modelURL = './models/faces.onnx'
+    // await model.load(modelURL)
+    // animate()
 
 </script>
 
