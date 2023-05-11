@@ -1,7 +1,7 @@
 import { generateNormalLatentVector } from './utils.js'
 
 let session;
-export async function load(model = './model.onnx') {
+export async function load(model) {
     session = await ort.InferenceSession.create(model);
 }
 
