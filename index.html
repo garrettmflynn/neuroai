@@ -20,10 +20,25 @@
         img {
             height: 50%;
         }
+
+        #controls {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            min-width: 200px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
     </style>
 </head>
 
 <body>
+    <div id="controls">
+        <button id="interpolation">Toggle Interpolation</button>
+    </div>
     <img id="generatedImage" src="" alt="Generated image" hidden>
     <input type="file" accept=".onnx">
 </body>
@@ -34,32 +49,67 @@
     // Get elements from the page
     const img = document.querySelector('img')
     const input = document.querySelector('input')
+    const controls = document.getElementById('controls')
+    const toggleInterpolation = document.getElementById('interpolation')
 
     const framesPerInterpolation = 60
 
     const vectors = [ model.vectors.generate() ]
 
+    const vLength = vectors[0].length
+
+    let latestVector = vectors[0]
+    let autogenerate = true
+    toggleInterpolation.onclick = () => autogenerate = !autogenerate
+
+    function updateInputs (vectors, inputs) {
+         vectors.forEach((v, i) => {
+            const input = inputs[i]
+            input.value = v
+            input.oninput = () => (autogenerate ? vectors : latestVector)[i] = parseFloat(input.value)
+        })
+    }
+
+    const inputs = vectors[0].map((v) => {
+        const input = document.createElement('input')
+        input.type = 'range'
+        input.min = -5
+        input.max = 5
+        return input
+    })
+
+    updateInputs(vectors[0], inputs)
+    controls.append(...inputs)
+
     let nFrames = 0
 
     // Create an animation function to handle image refreshes
     function animate () {
-        let vector
 
-        // Create new vector to interpolate to
-        const modulus = nFrames % framesPerInterpolation
-        if (modulus === 0) vectors.push(model.vectors.generate())
+        if (autogenerate) {
+            // Create new vector to interpolate to
+            const modulus = nFrames % framesPerInterpolation
+            if (modulus === 0) {
+                const newVector = model.vectors.generate()
+                vectors.push(newVector)
+                updateInputs(newVector, inputs)
+            }
         
-        // Interpolate the last two vectors in the array
-        const vInter = model.vectors.interpolate(vectors[vectors.length - 2], vectors[vectors.length - 1], modulus / framesPerInterpolation)
+            // Interpolate the last two vectors in the array
+            const vInter = latestVector = model.vectors.interpolate(vectors[vectors.length - 2], vectors[vectors.length - 1], modulus / framesPerInterpolation)
         
+            // Increment the frame count and request the next frame
+            nFrames++
+
+        }
+
+
         // Generate an image based off the interpolated vector
-        model.generateImage(vInter).then(dataurl => {
+        model.generateImage(latestVector).then(dataurl => {
             img.src = dataurl
             img.removeAttribute('hidden')
         })
 
-        // Increment the frame count and request the next frame
-        nFrames++
         requestAnimationFrame(animate)
     }
 
